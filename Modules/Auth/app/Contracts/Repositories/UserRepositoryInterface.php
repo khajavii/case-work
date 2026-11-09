@@ -12,6 +12,11 @@ interface UserRepositoryInterface
     public function findByMobile(string $mobile): ?User;
 
     /**
+     * Find a user by their email number.
+     */
+    public function findByEmail(string $email): ?User;
+
+    /**
      * Find an existing user or create a mobile-verified user.
      */
     public function findOrCreateByMobile(string $mobile): User;

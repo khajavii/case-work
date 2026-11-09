@@ -12,6 +12,11 @@ class UserRepository implements UserRepositoryInterface
         return User::query()->where('mobile', $mobile)->first();
     }
 
+    public function findByEmail(string $email): ?User
+    {
+        return User::query()->where('email', $email)->first();
+    }
+
     public function findOrCreateByMobile(string $mobile): User
     {
         // OTP-verified users are created with only their mobile marked as verified.
