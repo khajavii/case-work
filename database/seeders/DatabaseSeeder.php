@@ -4,7 +4,10 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Modules\Auth\Database\Seeders\AuthDatabaseSeeder;
+use Modules\Orders\Database\Seeders\OrdersDatabaseSeeder;
+use Modules\Production\Database\Seeders\ProductionDatabaseSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,8 +18,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
-            AuthDatabaseSeeder::class
-        ]);
+        DB::transaction(function (): void {
+            $this->call([
+                AuthDatabaseSeeder::class,
+                OrdersDatabaseSeeder::class,
+                ProductionDatabaseSeeder::class,
+            ]);
+        });
     }
 }
