@@ -6,8 +6,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Modules\Auth\Contracts\LoginStrategy;
-use Modules\Auth\Contracts\Repositories\UserRepositoryInterface;
 use Modules\Auth\Enums\LoginMethod;
+use Modules\Auth\Repositories\User\UserRepositoryInterface;
 
 class PasswordLoginStrategy implements LoginStrategy
 {

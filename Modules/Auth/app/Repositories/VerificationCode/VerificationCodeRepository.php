@@ -1,18 +1,24 @@
 <?php
 
-namespace Modules\Auth\Repositories;
+namespace Modules\Auth\Repositories\VerificationCode;
 
-use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
-use Modules\Auth\Contracts\Repositories\VerificationCodeRepositoryInterface;
 use Modules\Auth\Enums\VerificationPurpose;
 use Modules\Auth\Models\UserVerificationCode;
 
 class VerificationCodeRepository implements VerificationCodeRepositoryInterface
 {
+    public function __construct(protected UserVerificationCode $model)
+    {
+
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function latestFor(string $identifier, VerificationPurpose $purpose): ?UserVerificationCode
     {
-        return UserVerificationCode::query()
+        return $this->model->query()
             ->where('identifier', $identifier)
             ->where('purpose', $purpose->value)
             ->latest('id')
@@ -20,22 +26,17 @@ class VerificationCodeRepository implements VerificationCodeRepositoryInterface
     }
 
     /**
-     * @param  array{
-     *     identifier: string,
-     *     purpose: VerificationPurpose,
-     *     code: string,
-     *     expires_at: CarbonInterface
-     * }  $data
+     * {@inheritdoc}
      */
     public function replaceFor(array $data): void
     {
         DB::transaction(function () use ($data): void {
-            UserVerificationCode::query()
+            $this->model->query()
                 ->where('identifier', $data['identifier'])
                 ->where('purpose', $data['purpose']->value)
                 ->delete();
 
-            UserVerificationCode::query()->create([
+            $this->model->query()->create([
                 'identifier' => $data['identifier'],
                 'purpose' => $data['purpose'],
                 'code' => $data['code'],

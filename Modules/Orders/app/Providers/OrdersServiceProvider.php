@@ -2,6 +2,11 @@
 
 namespace Modules\Orders\Providers;
 
+use Illuminate\Support\Facades\Gate;
+use Modules\Orders\Models\Order;
+use Modules\Orders\Policies\OrderPolicy;
+use Modules\Orders\Repositories\Order\OrderRepository;
+use Modules\Orders\Repositories\Order\OrderRepositoryInterface;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 
@@ -34,13 +39,24 @@ class OrdersServiceProvider extends ModuleServiceProvider
         RouteServiceProvider::class,
     ];
 
+
     /**
-     * Define module schedules.
-     * 
-     * @param $schedule
+     * Register any application services.
      */
-    // protected function configureSchedules(Schedule $schedule): void
-    // {
-    //     $schedule->command('inspire')->hourly();
-    // }
+    public function register(): void
+    {
+        $this->app->bind(
+            OrderRepositoryInterface::class,
+            OrderRepository::class
+        );
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        Gate::policy(Order::class, OrderPolicy::class);
+    }
+
 }

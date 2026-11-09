@@ -7,15 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Modules\Auth\Contracts\LoginStrategy;
-use Modules\Auth\Contracts\Repositories\UserRepositoryInterface;
-use Modules\Auth\Contracts\Repositories\VerificationCodeRepositoryInterface;
-use Modules\Auth\Repositories\UserRepository;
-use Modules\Auth\Repositories\VerificationCodeRepository;
+use Modules\Auth\Repositories\User\UserRepository;
+use Modules\Auth\Repositories\User\UserRepositoryInterface;
+use Modules\Auth\Repositories\VerificationCode\VerificationCodeRepository;
+use Modules\Auth\Repositories\VerificationCode\VerificationCodeRepositoryInterface;
 use Modules\Auth\Rules\LoginRulesResolver;
 use Modules\Auth\Rules\OtpLoginRules;
 use Modules\Auth\Rules\PasswordLoginRules;
 use Modules\Auth\Strategies\OtpLoginStrategy;
-use Modules\Auth\Strategies\PasswordLoginStrategy;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class AuthServiceProvider extends ModuleServiceProvider

@@ -41,8 +41,10 @@ class Order extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'owner_id',
         'customer_name',
         'address',
+        'status',
     ];
 
     /**

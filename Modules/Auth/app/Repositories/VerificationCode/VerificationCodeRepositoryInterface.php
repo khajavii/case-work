@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Auth\Contracts\Repositories;
+namespace Modules\Auth\Repositories\VerificationCode;
 
 use Carbon\CarbonInterface;
 use Modules\Auth\Enums\VerificationPurpose;

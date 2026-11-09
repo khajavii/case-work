@@ -5,9 +5,9 @@ namespace Modules\Auth\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use Modules\Auth\Contracts\Repositories\UserRepositoryInterface;
-use Modules\Auth\Contracts\Repositories\VerificationCodeRepositoryInterface;
 use Modules\Auth\Enums\VerificationPurpose;
+use Modules\Auth\Repositories\User\UserRepositoryInterface;
+use Modules\Auth\Repositories\VerificationCode\VerificationCodeRepositoryInterface;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class OtpService
