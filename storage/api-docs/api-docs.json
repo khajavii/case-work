@@ -342,7 +342,7 @@
                                         },
                                         "data": {
                                             "properties": {
-                                                "items": {
+                                                "result": {
                                                     "type": "array",
                                                     "items": {
                                                         "$ref": "#/components/schemas/Order"
@@ -511,6 +511,319 @@
                     }
                 ]
             }
+        },
+        "/api/v1/jobs": {
+            "get": {
+                "tags": [
+                    "Production"
+                ],
+                "summary": "List accessible production jobs",
+                "description": "Admins and planners see jobs under their own orders. Installers see only jobs assigned to them.",
+                "operationId": "listProductionJobs",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "cutting",
+                                "edge_banding",
+                                "assembly",
+                                "ready_for_installation",
+                                "installation",
+                                "completed"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "order_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Jobs retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "success"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "result": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/ProductionJob"
+                                                    }
+                                                },
+                                                "pagination": {
+                                                    "$ref": "#/components/schemas/Pagination"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    },
+                    "403": {
+                        "description": "The user is not allowed to list jobs."
+                    },
+                    "422": {
+                        "description": "Invalid filters or pagination parameters."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Production"
+                ],
+                "summary": "Create a production job",
+                "description": "Only admins and planners may create jobs under their own orders. The initial status is always cutting. An optional assignee must have the installer role.",
+                "operationId": "createProductionJob",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "order_id",
+                                    "title"
+                                ],
+                                "properties": {
+                                    "order_id": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "example": 3
+                                    },
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 200,
+                                        "example": "Kitchen base cabinets"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "maxLength": 10000,
+                                        "example": "Produce and install the kitchen base cabinets.",
+                                        "nullable": true
+                                    },
+                                    "assigned_installer_id": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "example": 5,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Job created successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProductionJobResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    },
+                    "403": {
+                        "description": "The user is not allowed to create jobs."
+                    },
+                    "404": {
+                        "description": "The order does not exist or is outside the user's scope."
+                    },
+                    "422": {
+                        "description": "Invalid job data or the selected user is not an installer."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/jobs/{jobId}": {
+            "get": {
+                "tags": [
+                    "Production"
+                ],
+                "summary": "Show an accessible production job",
+                "description": "Show a job inside the authenticated user's scope.",
+                "operationId": "showProductionJob",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Job retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProductionJobResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    },
+                    "403": {
+                        "description": "The user is not allowed to view jobs."
+                    },
+                    "404": {
+                        "description": "The job does not exist or is outside the user's scope."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/production/jobs/{jobId}/status": {
+            "patch": {
+                "tags": [
+                    "Production"
+                ],
+                "summary": "Change a production job status",
+                "description": "Changes the job status and records its history atomically. Only the next workflow stage is allowed.",
+                "operationId": "changeProductionJobStatus",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "expected_status",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "expected_status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "cutting",
+                                            "edge_banding",
+                                            "assembly",
+                                            "ready_for_installation",
+                                            "installation",
+                                            "completed"
+                                        ],
+                                        "example": "cutting"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "cutting",
+                                            "edge_banding",
+                                            "assembly",
+                                            "ready_for_installation",
+                                            "installation",
+                                            "completed"
+                                        ],
+                                        "example": "edge_banding"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Job status updated successfully"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "The operation is forbidden"
+                    },
+                    "404": {
+                        "description": "The job does not exist or is outside the user's scope"
+                    },
+                    "409": {
+                        "description": "The expected status does not match the current status"
+                    },
+                    "422": {
+                        "description": "Invalid input or disallowed status transition"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -562,6 +875,101 @@
                     }
                 },
                 "type": "object"
+            },
+            "ProductionJob": {
+                "required": [
+                    "id",
+                    "order_id",
+                    "assigned_installer_id",
+                    "title",
+                    "description",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Handle production job API requests.",
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "order_id": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "assigned_installer_id": {
+                        "type": "integer",
+                        "example": 5,
+                        "nullable": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Kitchen base cabinets"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Produce and install the kitchen base cabinets.",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "cutting",
+                            "edge_banding",
+                            "assembly",
+                            "ready_for_installation",
+                            "installation",
+                            "completed"
+                        ],
+                        "example": "cutting"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ProductionJobResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "example": "success"
+                    },
+                    "message": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/ProductionJob"
+                    }
+                },
+                "type": "object"
+            },
+            "Pagination": {
+                "properties": {
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 15
+                    },
+                    "last_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "total": {
+                        "type": "integer",
+                        "example": 4
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -580,6 +988,10 @@
         {
             "name": "Orders",
             "description": "Orders"
+        },
+        {
+            "name": "Production",
+            "description": "Production"
         }
     ]
 }

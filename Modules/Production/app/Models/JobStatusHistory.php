@@ -47,9 +47,11 @@ class JobStatusHistory extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'job_id',
         'changed_by',
         'from_status',
         'to_status',
+        'created_at',
     ];
 
     /**
@@ -62,7 +64,7 @@ class JobStatusHistory extends Model
         return [
             'from_status' => JobStatus::class,
             'to_status' => JobStatus::class,
-            'created_at' => 'datetime',
+            'created_at' => 'immutable_datetime',
         ];
     }
 

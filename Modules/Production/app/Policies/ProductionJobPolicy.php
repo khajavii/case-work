@@ -5,6 +5,7 @@ namespace Modules\Production\Policies;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Modules\Production\Models\ProductionJob;
 
 class ProductionJobPolicy
 {
@@ -39,5 +40,28 @@ class ProductionJobPolicy
         return $user->role instanceof UserRole
             ? $user->role->value
             : (string) $user->role;
+    }
+
+    /**
+     * @param User $user
+     * @param ProductionJob $job
+     * @return bool
+     */
+    public function changeStatus(
+        User $user,
+        ProductionJob $job
+    ): bool {
+        if ($user->role === UserRole::INSTALLER) {
+            return (int) $job->assigned_installer_id === (int) $user->id;
+        }
+
+        if (in_array($user->role, [
+            UserRole::ADMIN,
+            UserRole::PLANNER,
+        ], true)) {
+            return (int) $job->order->owner_id === (int) $user->id;
+        }
+
+        return false;
     }
 }

@@ -58,7 +58,7 @@ class ProductionJob extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status' => JobStatus::CUTTING->value,
+        'status' => JobStatus::class,
     ];
 
     /**

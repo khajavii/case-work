@@ -6,7 +6,7 @@ use OpenApi\Annotations as OA;
 
 /**
   * @OA\Schema(
- *     schema="Production",
+ *     schema="Pagination",
  *     type="object",
  *     @OA\Property(
  *         property="current_page",

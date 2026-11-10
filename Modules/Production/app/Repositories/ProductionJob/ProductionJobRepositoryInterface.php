@@ -32,4 +32,16 @@ interface ProductionJobRepositoryInterface
      * @param array<string, mixed> $attributes
      */
     public function create(array $attributes): ProductionJob;
+
+    /**
+     * find Visible To For Update Or Fail
+     *
+     * @param User $actor
+     * @param int $jobId
+     * @return ProductionJob
+     */
+    public function findVisibleToForUpdateOrFail(
+        User $actor,
+        int $jobId
+    ): ProductionJob;
 }

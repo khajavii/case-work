@@ -37,4 +37,20 @@ enum JobStatus: string
      * Production and installation have been completed.
      */
     case COMPLETED = 'completed';
+
+    /**
+     * @param JobStatus $next
+     * @return bool
+     */
+    public function canTransitionTo(self $next): bool
+    {
+        return match ($this->value) {
+            'cutting' => $next->value === 'edge_banding',
+            'edge_banding' => $next->value === 'assembly',
+            'assembly' => $next->value === 'ready_for_installation',
+            'ready_for_installation' => $next->value === 'installation',
+            'installation' => $next->value === 'completed',
+            'completed' => false,
+        };
+    }
 }

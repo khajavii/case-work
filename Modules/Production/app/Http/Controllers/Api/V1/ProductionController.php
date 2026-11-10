@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Traits\Controllers\ApiJsonResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Production\app\Actions\ChangeProductionJobStatusAction;
 use Modules\Production\app\Services\ProductionJobService;
+use Modules\Production\Enums\JobStatus;
+use Modules\Production\Http\Requests\ChangeProductionJobStatusRequest;
 use Modules\Production\Http\Requests\IndexProductionJobRequest;
 use Modules\Production\Http\Requests\StoreProductionJobRequest;
 use Modules\Production\Transformers\ProductionJobResource;
@@ -256,6 +259,102 @@ class ProductionController extends Controller
 
         return $this->success(
             (new ProductionJobResource($job))->resolve($request)
+        );
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/production/jobs/{jobId}/status",
+     *     operationId="changeProductionJobStatus",
+     *     tags={"Production"},
+     *     summary="Change a production job status",
+     *     description="Changes the job status and records its history atomically. Only the next workflow stage is allowed.",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="jobId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer", minimum=1)
+     *     ),
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"expected_status", "status"},
+     *             @OA\Property(
+     *                 property="expected_status",
+     *                 type="string",
+     *                 enum={
+     *                     "cutting",
+     *                     "edge_banding",
+     *                     "assembly",
+     *                     "ready_for_installation",
+     *                     "installation",
+     *                     "completed"
+     *                 },
+     *                 example="cutting"
+     *             ),
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 enum={
+     *                     "cutting",
+     *                     "edge_banding",
+     *                     "assembly",
+     *                     "ready_for_installation",
+     *                     "installation",
+     *                     "completed"
+     *                 },
+     *                 example="edge_banding"
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Job status updated successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="The operation is forbidden"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="The job does not exist or is outside the user's scope"
+     *     ),
+     *     @OA\Response(
+     *         response=409,
+     *         description="The expected status does not match the current status"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Invalid input or disallowed status transition"
+     *     )
+     * )
+     */
+
+    public function changeStatus(
+        ChangeProductionJobStatusRequest $request,
+        int $jobId,
+        ChangeProductionJobStatusAction $action,
+    ): JsonResponse {
+        $data = $request->validated();
+
+        $job = $action->execute(
+            actor: $request->user(),
+            jobId: $jobId,
+            expectedStatus: JobStatus::from($data['expected_status']),
+            nextStatus: JobStatus::from($data['status']),
+        );
+
+        return $this->success(
+            new ProductionJobResource($job),
+            'Job status updated successfully.'
         );
     }
 }

@@ -70,7 +70,41 @@ class ProductionJobRepository implements ProductionJobRepositoryInterface
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function findVisibleToForUpdateOrFail(
+        User $actor,
+        int $jobId
+    ): ProductionJob {
+
+        /** @var ProductionJob $query */
+        $query = $this->model->query();
+
+        if ($actor->role === UserRole::INSTALLER) {
+            $query->where('assigned_installer_id', $actor->id);
+        } elseif (in_array($actor->role, [
+            UserRole::ADMIN,
+            UserRole::PLANNER,
+        ], true)) {
+            $query->whereHas('order', function (Builder $query) use ($actor): void {
+                $query->where('owner_id', $actor->id);
+            });
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        return $query
+            ->whereKey($jobId)
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
+
+    /**
      * Build a fail-closed visibility query.
+     *
+     * @param User $actor
+     * @return Builder
      */
     private function visibleTo(User $actor): Builder
     {
@@ -98,4 +132,5 @@ class ProductionJobRepository implements ProductionJobRepositoryInterface
             default => $query->whereRaw('1 = 0'),
         };
     }
+
 }
