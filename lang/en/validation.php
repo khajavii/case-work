@@ -194,6 +194,12 @@ return [
         'email' => [
             'current_user' => 'The entered email address does not match your current email address.',
         ],
+        'production_id' => [
+            'required' => 'The production ID is required.',
+            'integer' => 'The production ID must be an integer.',
+            'min' => 'The production ID must be greater than zero.',
+            'exists' => 'The selected production job does not exist or is not accessible.',
+        ],
     ],
 
     /*

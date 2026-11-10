@@ -14,33 +14,15 @@ use Modules\Auth\Repositories\VerificationCode\VerificationCodeRepositoryInterfa
 use Modules\Auth\Rules\LoginRulesResolver;
 use Modules\Auth\Rules\OtpLoginRules;
 use Modules\Auth\Rules\PasswordLoginRules;
-use Modules\Auth\Strategies\OtpLoginStrategy;
+use Modules\Auth\Strategies\PasswordLoginStrategy;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class AuthServiceProvider extends ModuleServiceProvider
 {
-    /**
-     * The name of the module.
-     */
     protected string $name = 'Auth';
 
-    /**
-     * The lowercase version of the module name.
-     */
     protected string $nameLower = 'auth';
 
-    /**
-     * Command classes to register.
-     *
-     * @var string[]
-     */
-    // protected array $commands = [];
-
-    /**
-     * Provider classes to register.
-     *
-     * @var string[]
-     */
     protected array $providers = [
         EventServiceProvider::class,
         RouteServiceProvider::class,
@@ -50,34 +32,38 @@ class AuthServiceProvider extends ModuleServiceProvider
     {
         parent::register();
 
-        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
-        $this->app->bind(VerificationCodeRepositoryInterface::class, VerificationCodeRepository::class);
+        $this->app->bind(
+            UserRepositoryInterface::class,
+            UserRepository::class
+        );
 
-        /*
-         * The active login strategy.
-         *
-         * In a crisis, switch the concrete class below from OtpLoginStrategy
-         * to PasswordLoginStrategy. No controller or route changes are needed;
-         * the validation rules follow the active strategy automatically.
-         */
-        $this->app->bind(LoginStrategy::class, OtpLoginStrategy::class);
+        $this->app->bind(
+            VerificationCodeRepositoryInterface::class,
+            VerificationCodeRepository::class
+        );
+
+        // Active login strategy.
+        $this->app->bind(
+            LoginStrategy::class,
+            PasswordLoginStrategy::class
+        );
 
         $this->app->tag([
             OtpLoginRules::class,
             PasswordLoginRules::class,
         ], 'auth.login_rules');
 
-        $this->app->singleton(LoginRulesResolver::class, function ($app): LoginRulesResolver {
-            return new LoginRulesResolver(
-                $app->make(LoginStrategy::class),
-                $app->tagged('auth.login_rules'),
-            );
-        });
+        $this->app->singleton(
+            LoginRulesResolver::class,
+            function ($app): LoginRulesResolver {
+                return new LoginRulesResolver(
+                    $app->make(LoginStrategy::class),
+                    $app->tagged('auth.login_rules'),
+                );
+            }
+        );
     }
 
-    /**
-     * Boot the module services.
-     */
     public function boot(): void
     {
         parent::boot();
@@ -85,9 +71,6 @@ class AuthServiceProvider extends ModuleServiceProvider
         $this->registerRateLimiters();
     }
 
-    /**
-     * Register the login and OTP rate limiters.
-     */
     private function registerRateLimiters(): void
     {
         $this->registerMobileLimiter('auth-login', 5);
@@ -97,25 +80,15 @@ class AuthServiceProvider extends ModuleServiceProvider
         });
     }
 
-    /**
-     * Rate limit by mobile number and IP address.
-     */
-    private function registerMobileLimiter(string $name, int $perMinute): void
-    {
+    private function registerMobileLimiter(
+        string $name,
+        int $perMinute
+    ): void {
         RateLimiter::for($name, function (Request $request) use ($perMinute): Limit {
             $identifier = (string) $request->input('mobile', '');
 
-            return Limit::perMinute($perMinute)->by(Str::lower($identifier).'|'.$request->ip());
+            return Limit::perMinute($perMinute)
+                ->by(Str::lower($identifier).'|'.$request->ip());
         });
     }
-
-    /**
-     * Define module schedules.
-     *
-     * @param  $schedule
-     */
-    // protected function configureSchedules(Schedule $schedule): void
-    // {
-    //     $schedule->command('inspire')->hourly();
-    // }
 }

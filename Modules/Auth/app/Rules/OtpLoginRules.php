@@ -18,7 +18,7 @@ class OtpLoginRules implements LoginRules
     public function rules(): array
     {
         return [
-            'mobile' => ['required', 'ir_mobile:zero'],
+            'mobile' => ['required'],
             'code' => ['required', 'string', 'digits:6'],
         ];
     }

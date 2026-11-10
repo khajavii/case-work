@@ -5,6 +5,7 @@ namespace Modules\Auth\Database\Seeders;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class AuthDatabaseSeeder extends Seeder
 {
@@ -51,9 +52,10 @@ class AuthDatabaseSeeder extends Seeder
                 'email' => 'installer3@example.com',
                 'role' => UserRole::INSTALLER->value,
             ],
+
         ];
 
-        $password = \Illuminate\Support\Facades\Hash::make('password');
+        $password = Hash::make('password');
 
         User::unguarded(function () use ($users, $password): void {
             foreach ($users as $data) {

@@ -3,6 +3,8 @@
 namespace Modules\Production\Providers;
 
 use Illuminate\Support\Facades\Gate;
+use Modules\Production\app\Repositories\JobStatusHistory\JobStatusHistoryRepository;
+use Modules\Production\app\Repositories\JobStatusHistory\JobStatusHistoryRepositoryInterface;
 use Modules\Production\app\Repositories\ProductionJob\ProductionJobRepository;
 use Modules\Production\app\Repositories\ProductionJob\ProductionJobRepositoryInterface;
 use Modules\Production\Models\ProductionJob;
@@ -30,6 +32,11 @@ class ProductionServiceProvider extends ModuleServiceProvider
         $this->app->bind(
             ProductionJobRepositoryInterface::class,
             ProductionJobRepository::class
+        );
+
+        $this->app->bind(
+            JobStatusHistoryRepositoryInterface::class,
+            JobStatusHistoryRepository::class
         );
     }
 

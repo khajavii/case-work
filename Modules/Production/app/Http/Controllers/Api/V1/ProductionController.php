@@ -11,6 +11,7 @@ use Modules\Production\app\Services\ProductionJobService;
 use Modules\Production\Enums\JobStatus;
 use Modules\Production\Http\Requests\ChangeProductionJobStatusRequest;
 use Modules\Production\Http\Requests\IndexProductionJobRequest;
+use Modules\Production\Http\Requests\ShowProductionJobRequest;
 use Modules\Production\Http\Requests\StoreProductionJobRequest;
 use Modules\Production\Transformers\ProductionJobResource;
 use OpenApi\Annotations as OA;
@@ -28,7 +29,7 @@ class ProductionController extends Controller
      * List jobs accessible to the authenticated user.
      *
      * @OA\Get(
-     *     path="/api/v1/jobs",
+     *     path="/api/v1/productions",
      *     operationId="listProductionJobs",
      *     tags={"Production"},
      *     summary="List accessible production jobs",
@@ -138,7 +139,7 @@ class ProductionController extends Controller
      * Create a job under an owned order.
      *
      * @OA\Post(
-     *     path="/api/v1/jobs",
+     *     path="/api/v1/productions",
      *     operationId="createProductionJob",
      *     tags={"Production"},
      *     summary="Create a production job",
@@ -218,7 +219,7 @@ class ProductionController extends Controller
      * Show a job inside the authenticated user's scope.
      *
      * @OA\Get(
-     *     path="/api/v1/jobs/{jobId}",
+     *     path="/api/v1/productions/{jobId}",
      *     operationId="showProductionJob",
      *     tags={"Production"},
      *     summary="Show an accessible production job",
@@ -250,7 +251,7 @@ class ProductionController extends Controller
      *     )
      * )
      */
-    public function show(Request $request, int $jobId): JsonResponse
+    public function show(ShowProductionJobRequest $request, int $jobId): JsonResponse
     {
         $job = $this->jobService->show(
             $request->user(),
@@ -264,7 +265,7 @@ class ProductionController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/api/production/jobs/{jobId}/status",
+     *     path="/api/v1/jobs/{jobId}/status",
      *     operationId="changeProductionJobStatus",
      *     tags={"Production"},
      *     summary="Change a production job status",
@@ -340,20 +341,19 @@ class ProductionController extends Controller
 
     public function changeStatus(
         ChangeProductionJobStatusRequest $request,
-        int $jobId,
         ChangeProductionJobStatusAction $action,
     ): JsonResponse {
         $data = $request->validated();
 
         $job = $action->execute(
             actor: $request->user(),
-            jobId: $jobId,
+            jobId: (int) $data['job_id'],
             expectedStatus: JobStatus::from($data['expected_status']),
             nextStatus: JobStatus::from($data['status']),
         );
 
         return $this->success(
-            new ProductionJobResource($job),
+            (new ProductionJobResource($job))->resolve($request),
             'Job status updated successfully.'
         );
     }

@@ -45,19 +45,13 @@ class AuthController extends Controller
      *             @OA\Property(
      *                 property="mobile",
      *                 type="string",
-     *                 example="09123456789"
-     *             ),
-     *             @OA\Property(
-     *                 property="code",
-     *                 type="string",
-     *                 example="123456",
-     *                 description="OTP verification code"
+     *                 example="09120000001"
      *             ),
      *             @OA\Property(
      *                 property="password",
      *                 type="string",
      *                 format="password",
-     *                 example="Secret123",
+     *                 example="password",
      *                 description="User password"
      *             )
      *         )

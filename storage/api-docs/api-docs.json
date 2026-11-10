@@ -38,18 +38,13 @@
                                 "properties": {
                                     "mobile": {
                                         "type": "string",
-                                        "example": "09123456789"
-                                    },
-                                    "code": {
-                                        "description": "OTP verification code",
-                                        "type": "string",
-                                        "example": "123456"
+                                        "example": "09120000001"
                                     },
                                     "password": {
                                         "description": "User password",
                                         "type": "string",
                                         "format": "password",
-                                        "example": "Secret123"
+                                        "example": "password"
                                     }
                                 },
                                 "type": "object"
@@ -512,7 +507,7 @@
                 ]
             }
         },
-        "/api/v1/jobs": {
+        "/api/v1/productions": {
             "get": {
                 "tags": [
                     "Production"
@@ -691,7 +686,7 @@
                 ]
             }
         },
-        "/api/v1/jobs/{jobId}": {
+        "/api/v1/productions/{jobId}": {
             "get": {
                 "tags": [
                     "Production"
@@ -739,7 +734,7 @@
                 ]
             }
         },
-        "/api/production/jobs/{jobId}/status": {
+        "/api/v1/jobs/{jobId}/status": {
             "patch": {
                 "tags": [
                     "Production"

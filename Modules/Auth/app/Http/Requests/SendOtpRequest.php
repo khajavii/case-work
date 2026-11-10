@@ -17,7 +17,7 @@ class SendOtpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'mobile' => ['required', 'ir_mobile:zero'],
+            'mobile' => ['required'],
         ];
     }
 }

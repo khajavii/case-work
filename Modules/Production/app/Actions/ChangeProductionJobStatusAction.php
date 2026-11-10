@@ -3,7 +3,7 @@
 namespace Modules\Production\app\Actions;
 
 use App\Models\User;
-use Illuminate\Auth\Access\Gate;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Modules\Production\app\Repositories\JobStatusHistory\JobStatusHistoryRepositoryInterface;
@@ -32,6 +32,7 @@ class ChangeProductionJobStatusAction
             ProductionJob::class
         );
 
+
         return DB::transaction(function () use (
             $actor,
             $jobId,
@@ -49,6 +50,7 @@ class ChangeProductionJobStatusAction
             );
 
             $currentStatus = $job->status;
+
 
             if ($currentStatus !== $expectedStatus) {
                 throw new ConflictHttpException(

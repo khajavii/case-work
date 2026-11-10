@@ -18,7 +18,7 @@ class PasswordLoginRules implements LoginRules
     public function rules(): array
     {
         return [
-            'mobile' => ['required', 'ir_mobile:zero'],
+            'mobile' => ['required'],
             'password' => ['required', 'string'],
         ];
     }

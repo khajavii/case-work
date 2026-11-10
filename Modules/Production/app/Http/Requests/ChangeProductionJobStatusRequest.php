@@ -6,14 +6,21 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Production\Enums\JobStatus;
 
-class ChangeProductionJobStatusRequest extends FormRequest
+class ChangeProductionJobStatusRequest extends ProductionJobRequest
 {
+    protected function jobRouteParameter(): string
+    {
+        return 'jobId';
+    }
+
     /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
     {
         return [
+            ...parent::rules(),
+
             'expected_status' => [
                 'required',
                 Rule::enum(JobStatus::class),
@@ -26,7 +33,6 @@ class ChangeProductionJobStatusRequest extends FormRequest
 
             'changed_by' => ['prohibited'],
             'created_at' => ['prohibited'],
-            'job_id' => ['prohibited'],
             'owner_id' => ['prohibited'],
         ];
     }
@@ -37,5 +43,15 @@ class ChangeProductionJobStatusRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    /**
+     * @return void
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'job_id' => $this->route('jobId'),
+        ]);
     }
 }
