@@ -1,58 +1,324 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Case Work API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A modular Laravel API for cabinet orders and production/installation workflows, with JWT authentication, role-based authorization, status history, and Swagger documentation.
 
-## About Laravel
+Repository: https://github.com/khajavii/case-work
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Technology Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The following version constraints come from the project's `composer.json`.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Application packages
 
-## Learning Laravel
+| Package | Constraint | Purpose |
+| --- | --- | --- |
+| PHP | `^8.3` | Composer PHP requirement; the supplied Dockerfile uses PHP 8.4 |
+| `laravel/framework` | `^13.17` | Application framework |
+| `nwidart/laravel-modules` | `^13.3` | Modular application structure |
+| `tymon/jwt-auth` | `^2.3` | JWT authentication |
+| `darkaonline/l5-swagger` | `^8.6` | Swagger / OpenAPI documentation |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Development packages
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- `fakerphp/faker`: `^1.23`
+- `laravel/pail`: `^1.2.5`
+- `laravel/pao`: `^1.0.6`
+- `laravel/pint`: `^1.27`
+- `mockery/mockery`: `^1.6`
+- `nunomaduro/collision`: `^8.6`
+- `phpunit/phpunit`: `^12.5.12`
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+PostgreSQL is used for application data; SQLite is used for isolated automated tests. The supplied Docker configuration includes PHP-FPM, Nginx, PostgreSQL 17, and Redis.
 
-## Agentic Development
+> Use PHP 8.4 for local development to match the Dockerfile. Although the root Composer constraint allows PHP 8.3, dependencies may require a higher version.
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Architecture
 
-```bash
-composer require laravel/boost --dev
+The application is organized into three modules:
 
-php artisan boost:install
+- **Auth** — JWT authentication and authentication strategies.
+- **Orders** — order creation and listing.
+- **Production** — production jobs, scoped access, status transitions, and status history.
+
+The code aims to follow clean-code and SOLID principles. Enums represent roles and workflow states, services hold reusable behavior, repositories encapsulate persistence queries, and actions coordinate specific use cases where appropriate.
+
+Authentication uses the **Strategy pattern** to support password and OTP approaches. Password authentication is the currently configured approach and is documented in Swagger. The OTP strategy is not currently documented in Swagger; do not assume a fully configured OTP delivery service is available.
+
+User-facing messages are intended to live in language files. Some remaining inline messages may still need to be moved there.
+
+## Authorization Design
+
+Roles are represented by an enum-backed user field rather than separate `roles` and `permissions` tables. Laravel Gates and Policies enforce access rules without a third-party permissions package.
+
+This is a deliberate choice for the current project's small, fixed role set. For a larger application with dynamic permissions, a dedicated role/permission package would be considered.
+
+Roles:
+
+- `admin`
+- `planner`
+- `installer`
+
+Installers can access only jobs assigned to them. Under the current ownership-based contract, admin and planner access to orders and related jobs is scoped to the order owner; the admin role does not imply unrestricted access to every record.
+
+## Local Installation — Windows / PowerShell
+
+### 1. Clone and install dependencies
+
+```powershell
+git clone https://github.com/khajavii/case-work.git
+cd case-work
+composer install
+Copy-Item .env.example .env
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Review `.env` before running database commands. The available environment settings are documented in `.env.example`.
 
-## Contributing
+### 2. Configure PostgreSQL
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Create a dedicated local database and update `.env`:
 
-## Code of Conduct
+```dotenv
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=case_work
+DB_USERNAME=your_local_user
+DB_PASSWORD=your_local_password
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+If using the PostgreSQL service from Docker while running PHP on Windows, use `DB_HOST=127.0.0.1` and `DB_PORT=5433` instead.
 
-## Security Vulnerabilities
+Remove or clear any stale `DB_URL` value that would override these settings.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 3. Generate application and JWT secrets
 
-## License
+```powershell
+php artisan key:generate
+php artisan jwt:secret
+php artisan config:clear
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+`jwt:secret` generates and writes `JWT_SECRET` to `.env`. Keep the generated value; do not replace it with a fixed example or commit it to Git. Each environment should have its own secrets.
+
+### 4. Migrate and seed
+
+Confirm that the active connection points to your local database, then run:
+
+```powershell
+php artisan migrate
+php artisan db:seed
+```
+
+Seeders provide fake/demo data, including users for the three roles. Do not assume seeders are safe to rerun on valuable data without reviewing their implementation.
+
+### 5. Start the API
+
+```powershell
+php artisan serve
+```
+
+Local URL: http://127.0.0.1:8000
+
+This is an API project; no frontend or login UI is required. Node.js and an asset build are not needed for the API-only setup above.
+
+## Demo Credentials
+
+All listed demo accounts use the password `password`.
+
+| Role | Email | Mobile | Password |
+| --- | --- | --- | --- |
+| Admin | `admin@example.com` | `09120000001` | `password` |
+| Planner | `planner1@example.com` | `09120000002` | `password` |
+| Installer | `installer1@example.com` | `09120000004` | `password` |
+
+Use the identifier field accepted by the password login endpoint in Swagger. These accounts are for local/demo use only.
+
+## API Documentation and Authentication
+
+Swagger UI:
+
+http://127.0.0.1:8000/api/documentation
+
+Regenerate the documentation when annotations change:
+
+```powershell
+php artisan l5-swagger:generate
+```
+
+Authenticate using the documented password login endpoint and use the returned JWT for protected requests:
+
+```http
+Authorization: Bearer <token>
+Accept: application/json
+```
+
+Use Swagger's authorization dialog according to the configured security scheme. OTP endpoints are not currently included in Swagger.
+
+Inspect the actual registered API routes with:
+
+```powershell
+php artisan route:list --path=api -vv
+```
+
+## Production Workflow
+
+Jobs progress sequentially through these stages:
+
+```text
+cutting
+  → edge_banding
+  → assembly
+  → ready_for_installation
+  → installation
+  → completed
+```
+
+Status changes include an `expected_status` to detect stale requests. The action performs authorization, loads the visible job with a row lock, validates the expected status and transition, and persists the new status and history within one database transaction.
+
+- A stale expected status returns `409 Conflict`.
+- An invalid transition returns `422 Unprocessable Entity`.
+- Status history records the previous state, new state, actor, and timestamp.
+- Unauthorized or invalid requests must not create status history.
+
+## Ready-for-Installation Queue Job
+
+When a job enters `ready_for_installation`, a queued job logs the readiness event. Dispatch is registered with `afterCommit()` so it occurs only after the status/history transaction commits successfully. A rolled-back transaction does not dispatch the job.
+
+This feature currently writes a log; it does not send an email, SMS, or push notification.
+
+### Queue configuration
+
+For asynchronous processing on Windows, a database queue can be used:
+
+```dotenv
+QUEUE_CONNECTION=database
+CACHE_STORE=file
+```
+
+The database queue requires a `jobs` table. Only if its migration is missing, generate it:
+
+```powershell
+php artisan make:queue-table
+```
+
+Then, against your local database:
+
+```powershell
+php artisan migrate
+php artisan config:clear
+```
+
+Run a continuous worker manually:
+
+```powershell
+php artisan queue:work database --queue=default --tries=3 --timeout=60
+```
+
+### Scheduled processing
+
+The queue-processing schedule runs once per minute. The corresponding registration in `routes/console.php` is:
+
+```php
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('queue:work database --queue=default --stop-when-empty --tries=3 --timeout=60')
+    ->everyMinute()
+    ->withoutOverlapping(10);
+```
+
+Run the scheduler locally in a separate terminal:
+
+```powershell
+php artisan schedule:work
+```
+
+Inspect registered tasks:
+
+```powershell
+php artisan schedule:list
+```
+
+Choose either continuous manual queue processing or scheduled processing; both are not required for local use. Scheduled processing may delay the log by approximately one minute, plus any queue backlog. Use a persistent cache store for the scheduler's overlap lock, not `array`.
+
+With `QUEUE_CONNECTION=sync`, the job executes in-process after commit rather than in a background worker.
+
+On a deployed server, configure a process manager or a system scheduler as appropriate; merely defining a schedule does not execute it automatically. After changing job code, restart long-running workers:
+
+```powershell
+php artisan queue:restart
+```
+
+## Automated Tests
+
+Tests are currently run locally on Windows. Docker configuration is also provided, but a verified clean Docker installation should not be inferred from its presence.
+
+Tests use SQLite `:memory:` with a dedicated testing environment. Never point tests at an application or production database.
+
+Create `.env.testing` from an appropriate example or create it manually with:
+
+## Automated Tests
+
+Tests use an isolated SQLite in-memory database. Enable `pdo_sqlite`
+in your PHP installation and configure `.env.testing` with:
+```dotenv
+APP_ENV=testing
+DB_CONNECTION=sqlite
+DB_DATABASE=:memory:
+DB_URL=
+CACHE_STORE=array
+SESSION_DRIVER=array
+QUEUE_CONNECTION=sync
+CACHE_STORE=file
+```
+
+Generate separate testing secrets:
+
+```powershell
+php artisan key:generate --env=testing
+php artisan jwt:secret --env=testing
+php artisan config:clear
+composer dump-autoload
+```
+## Docker Configuration
+
+The supplied Compose stack contains:
+
+- PHP 8.4 FPM
+- Nginx on http://localhost:8080
+- PostgreSQL 17, exposed on `127.0.0.1:5433`
+- Redis
+
+The PHP Dockerfile includes PostgreSQL extensions, SQLite PDO support for tests, Xdebug, and other project extensions.
+
+Build and start:
+
+```powershell
+docker compose build php
+docker compose up -d
+```
+
+For PHP running inside Docker, database networking differs from host networking:
+
+```dotenv
+DB_HOST=postgres
+DB_PORT=5432
+REDIS_HOST=redis
+REDIS_PORT=6379
+```
+
+## Useful Maintenance Commands
+
+```powershell
+composer validate
+composer check-platform-reqs
+composer show --direct
+composer dump-autoload
+php artisan module:list
+php artisan config:clear
+php artisan route:clear
+php artisan l5-swagger:generate
+php artisan db:seed
+php artisan queue:failed
+php artisan schedule:list
+vendor/bin/pint
+```
