@@ -34,8 +34,8 @@ class OrderService
         return $this->orders->paginateForOwner(
             ownerId: (int) $actor->getAuthIdentifier(),
             status: $status,
-            perPage: (int) ($filters['per_page'] ?? 15),
-            page: (int) ($filters['page'] ?? 1)
+            perPage: (int) ($filters['per_page'] ?? config('general.pagination.default', 15)),
+            page: (int) ($filters['page'] ?? config('general.pagination.page', 1))
         );
     }
 

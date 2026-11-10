@@ -10,6 +10,11 @@ use Modules\Production\Models\ProductionJob;
 
 class ProductionJobRepository implements ProductionJobRepositoryInterface
 {
+    public function __construct(protected ProductionJob $model)
+    {
+
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -19,19 +24,17 @@ class ProductionJobRepository implements ProductionJobRepositoryInterface
     ): LengthAwarePaginator {
         $query = $this->visibleTo($actor);
 
-        if (isset($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-
-        if (isset($filters['order_id'])) {
-            $query->where('order_id', $filters['order_id']);
-        }
-
         return $query
+            ->status($filters['status'] ?? null)
+            ->orderId(
+                isset($filters['order_id'])
+                    ? (int) $filters['order_id']
+                    : null
+            )
             ->orderByDesc('id')
             ->paginate(
-                perPage: (int) ($filters['per_page'] ?? 15),
-                page: (int) ($filters['page'] ?? 1)
+                perPage: (int) ($filters['per_page'] ?? config('general.pagination.default',15)),
+                page: (int) ($filters['page'] ?? config('general.pagination.page', 1))
             );
     }
 
@@ -54,17 +57,16 @@ class ProductionJobRepository implements ProductionJobRepositoryInterface
      */
     public function create(array $attributes): ProductionJob
     {
-        $job = new ProductionJob();
+        /** @var ProductionJob $query */
+        $query = $this->model->query();
 
-        $job->order_id = $attributes['order_id'];
-        $job->title = $attributes['title'];
-        $job->description = $attributes['description'];
-        $job->assigned_installer_id = $attributes['assigned_installer_id'];
-        $job->status = $attributes['status'];
-
-        $job->save();
-
-        return $job;
+        return $this->model->query()->create([
+            'order_id' => $attributes['order_id'],
+            'title' => $attributes['title'],
+            'description' => $attributes['description'],
+            'assigned_installer_id' => $attributes['assigned_installer_id'],
+            'status' => $attributes['status'],
+        ]);
     }
 
     /**
@@ -72,32 +74,28 @@ class ProductionJobRepository implements ProductionJobRepositoryInterface
      */
     private function visibleTo(User $actor): Builder
     {
-        $query = ProductionJob::query();
+        /** @var ProductionJob $query */
+        $query = $this->model->query();
 
         $role = $actor->role instanceof UserRole
             ? $actor->role->value
             : (string) $actor->role;
 
-        if ($role === UserRole::INSTALLER->value) {
-            return $query->where(
+        $userId = $actor->getAuthIdentifier();
+
+        return match ($role) {
+            UserRole::INSTALLER->value => $query->where(
                 'assigned_installer_id',
-                $actor->getAuthIdentifier()
-            );
-        }
+                $userId
+            ),
 
-        if (in_array($role, [
             UserRole::ADMIN->value,
-            UserRole::PLANNER->value,
-        ], true)) {
-            return $query->whereHas(
+            UserRole::PLANNER->value => $query->whereHas(
                 'order',
-                fn (Builder $orders) => $orders->where(
-                    'owner_id',
-                    $actor->getAuthIdentifier()
-                )
-            );
-        }
+                fn (Builder $orders) => $orders->where('owner_id', $userId)
+            ),
 
-        return $query->whereRaw('1 = 0');
+            default => $query->whereRaw('1 = 0'),
+        };
     }
 }

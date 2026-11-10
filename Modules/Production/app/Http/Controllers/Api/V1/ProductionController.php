@@ -130,13 +130,6 @@ class ProductionController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('production::create');
-    }
 
     /**
      * Create a job under an owned order.
@@ -265,22 +258,4 @@ class ProductionController extends Controller
             (new ProductionJobResource($job))->resolve($request)
         );
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('production::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id) {}
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id) {}
 }

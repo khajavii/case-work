@@ -3,6 +3,7 @@
 namespace Modules\Production\Models;
 
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -46,6 +47,9 @@ class ProductionJob extends Model
     protected $fillable = [
         'title',
         'description',
+        'order_id',
+        'assigned_installer_id',
+        'status'
     ];
 
     /**
@@ -54,7 +58,7 @@ class ProductionJob extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status' => 'cutting',
+        'status' => JobStatus::CUTTING->value,
     ];
 
     /**
@@ -104,5 +108,31 @@ class ProductionJob extends Model
         return $this->hasMany(JobStatusHistory::class, 'job_id')
             ->orderBy('created_at')
             ->orderBy('id');
+    }
+
+    /**
+     * Filter jobs by status.
+     */
+    public function scopeStatus(
+        Builder $query,
+        JobStatus|string|null $status
+    ): Builder {
+        return $query->when(
+            $status !== null,
+            fn (Builder $query) => $query->where('status', $status)
+        );
+    }
+
+    /**
+     * Filter jobs by order ID.
+     */
+    public function scopeOrderId(
+        Builder $query,
+        ?int $orderId
+    ): Builder {
+        return $query->when(
+            $orderId !== null,
+            fn (Builder $query) => $query->where('order_id', $orderId)
+        );
     }
 }
