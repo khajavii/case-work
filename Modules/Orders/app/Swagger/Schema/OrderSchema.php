@@ -2,6 +2,8 @@
 
 namespace Modules\Orders\Swagger\Schema;
 
+use OpenApi\Annotations as OA;
+
 /**
  * Handle order API requests.
  *

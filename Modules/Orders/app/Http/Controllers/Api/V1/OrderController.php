@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Orders\Http\Controllers;
+namespace Modules\Orders\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaginationResource;
@@ -11,6 +11,7 @@ use Modules\Orders\Http\Requests\IndexOrderRequest;
 use Modules\Orders\Http\Requests\StoreOrderRequest;
 use Modules\Orders\Services\OrderService;
 use Modules\Orders\Transformers\OrderResource;
+use OpenApi\Annotations as OA;
 
 class OrderController extends Controller
 {
@@ -71,7 +72,7 @@ class OrderController extends Controller
      *                 property="data",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="items",
+     *                     property="result",
      *                     type="array",
      *                     @OA\Items(ref="#/components/schemas/Order")
      *                 ),
@@ -139,7 +140,7 @@ class OrderController extends Controller
         );
 
         return $this->success([
-            'items' => OrderResource::collection(
+            'result' => OrderResource::collection(
                 $orders->getCollection()
             )->resolve($request),
             'pagination' => PaginationResource::make($orders),

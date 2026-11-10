@@ -1,8 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Production\Http\Controllers\ProductionController;
+use Modules\Production\Http\Controllers\Api\V1\ProductionController;
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-    Route::apiResource('productions', ProductionController::class)->names('production');
+Route::middleware(['auth:api'])->prefix('v1')->group(function () {
+    Route::apiResource('productions', ProductionController::class)
+        ->only('index', 'store', 'show')
+        ->names('production');
 });

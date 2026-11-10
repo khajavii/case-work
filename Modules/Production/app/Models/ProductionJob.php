@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
-use Modules\Orders\Enums\JobStatus;
+use Modules\Production\Enums\JobStatus;
 use Modules\Orders\Models\Order;
 
 /**

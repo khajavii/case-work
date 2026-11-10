@@ -6,7 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use Modules\Orders\Enums\JobStatus;
+use Modules\Production\Enums\JobStatus;
 
 /**
  * An audit record of a production job status transition.

@@ -16,8 +16,9 @@ class OrderRepository implements OrderRepositoryInterface
     {
 
     }
+
     /**
-     * Paginate owned orders with an optional status filter.
+     * {@inheritdoc}
      */
     public function paginateForOwner(
         int $ownerId,
@@ -43,9 +44,7 @@ class OrderRepository implements OrderRepositoryInterface
     }
 
     /**
-     * Persist a new order.
-     *
-     * @param array<string, mixed> $attributes
+     * {@inheritdoc}
      */
     public function create(array $attributes): Order
     {

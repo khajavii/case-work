@@ -1,7 +1,6 @@
 <?php
 
-namespace Modules\Orders\Enums;
-
+namespace Modules\Production\Enums;
 /**
  * Production and installation stages of a job.
  *

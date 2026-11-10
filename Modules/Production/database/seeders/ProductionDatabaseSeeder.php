@@ -5,7 +5,7 @@ namespace Modules\Production\Database\Seeders;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Modules\Orders\Enums\JobStatus;
+use Modules\Production\Enums\JobStatus;
 use Modules\Orders\Models\Order;
 use Modules\Production\Models\JobStatusHistory;
 use Modules\Production\Models\ProductionJob;

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Modules\Orders\Models\Order;
 use Modules\Production\Models\JobStatusHistory;
 use Modules\Production\Models\ProductionJob;
 use Tymon\JWTAuth\Contracts\JWTSubject;

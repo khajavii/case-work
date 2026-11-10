@@ -10,16 +10,25 @@ class UserRepository implements UserRepositoryInterface
     {
 
     }
+    /**
+     * {@inheritdoc}
+     */
     public function findByMobile(string $mobile): ?User
     {
         return $this->model->query()->where('mobile', $mobile)->first();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function findByEmail(string $email): ?User
     {
         return $this->model->query()->where('email', $email)->first();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function findOrCreateByMobile(string $mobile): User
     {
         // OTP-verified users are created with only their mobile marked as verified.
