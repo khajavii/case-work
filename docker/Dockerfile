@@ -3,11 +3,11 @@ FROM php:8.4-fpm-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache $PHPIZE_DEPS \
-    imagemagick-dev icu-dev zlib-dev jpeg-dev libpng-dev libzip-dev postgresql-dev libgomp linux-headers
+    imagemagick-dev icu-dev zlib-dev jpeg-dev libpng-dev libzip-dev postgresql-dev libgomp linux-headers sqlite-dev
 
 # Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-jpeg
-RUN docker-php-ext-install intl pcntl gd exif zip mysqli pgsql pdo pdo_mysql pdo_pgsql bcmath opcache
+RUN docker-php-ext-install intl pcntl gd exif zip mysqli pgsql pdo pdo_mysql pdo_pgsql pdo_sqlite bcmath opcache
 
 # Install xdebug extension
 RUN pecl install xdebug; \
@@ -29,7 +29,7 @@ RUN curl -L -o /tmp/imagick.tar.gz https://github.com/Imagick/imagick/archive/ta
     && echo "extension=imagick.so" > /usr/local/etc/php/conf.d/ext-imagick.ini
 
 # Clean up build dependencies
-RUN apk del $PHPIZE_DEPS imagemagick-dev icu-dev zlib-dev jpeg-dev libpng-dev libzip-dev postgresql-dev libgomp
+RUN apk del $PHPIZE_DEPS imagemagick-dev icu-dev zlib-dev jpeg-dev libpng-dev libzip-dev postgresql-dev libgomp sqlite-dev
 
 # Final image
 FROM php:8.4-fpm-alpine
