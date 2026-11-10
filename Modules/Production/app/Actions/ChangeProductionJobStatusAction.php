@@ -20,67 +20,176 @@ class ChangeProductionJobStatusAction
         private readonly JobStatusHistoryRepositoryInterface $history,
     ) {}
 
+    /**
+     * Change a production job status and record the status transition.
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws ConflictHttpException
+     * @throws \Nette\Schema\ValidationException
+     */
     public function execute(
         User $actor,
         int $jobId,
         JobStatus $expectedStatus,
         JobStatus $nextStatus,
-    ): ProductionJob
+    ): ProductionJob {
+        $this->authorizeJobListing($actor);
+
+        return DB::transaction(
+            fn (): ProductionJob => $this->changeStatus(
+                $actor,
+                $jobId,
+                $expectedStatus,
+                $nextStatus,
+            ),
+            3,
+        );
+    }
+
+    /**
+     * Execute the status transition within the current transaction.
+     *
+     * @param User $actor
+     * @param int $jobId
+     * @param JobStatus $expectedStatus
+     * @param JobStatus $nextStatus
+     * @return ProductionJob
+     */
+    private function changeStatus(
+        User $actor,
+        int $jobId,
+        JobStatus $expectedStatus,
+        JobStatus $nextStatus,
+    ): ProductionJob {
+        $job = $this->jobs->findVisibleToForUpdateOrFail(
+            $actor,
+            $jobId,
+        );
+
+        $this->authorizeStatusChange($actor, $job);
+
+        $currentStatus = $job->status;
+
+        $this->ensureExpectedStatus(
+            $currentStatus,
+            $expectedStatus,
+        );
+
+        $this->ensureValidTransition(
+            $currentStatus,
+            $nextStatus,
+        );
+
+        $this->persistStatusChange(
+            $job,
+            $actor,
+            $currentStatus,
+            $nextStatus,
+        );
+
+        return $job;
+    }
+
+
+    /**
+     * Ensure the actor is authorized to access the production job listing.
+     *
+     * @param User $actor
+     * @return void
+     */
+    private function authorizeJobListing(User $actor): void
     {
         Gate::forUser($actor)->authorize(
             'viewAny',
-            ProductionJob::class
+            ProductionJob::class,
         );
+    }
 
 
-        return DB::transaction(function () use (
-            $actor,
-            $jobId,
-            $expectedStatus,
+    /**
+     * Ensure the actor is authorized to change the production job status.
+     *
+     * @param User $actor
+     * @param ProductionJob $job
+     * @return void
+     */
+    private function authorizeStatusChange(
+        User $actor,
+        ProductionJob $job,
+    ): void {
+        Gate::forUser($actor)->authorize(
+            'changeStatus',
+            $job,
+        );
+    }
+
+    /**
+     * Ensure the current status matches the expected status.
+     *
+     * @throws ConflictHttpException
+     */
+    private function ensureExpectedStatus(
+        JobStatus $currentStatus,
+        JobStatus $expectedStatus,
+    ): void {
+        if ($currentStatus === $expectedStatus) {
+            return;
+        }
+
+        throw new ConflictHttpException(
+            __('general.errors.conflict_job_status'),
+        );
+    }
+
+    /**
+     * Ensure the requested status transition is allowed.
+     *
+     * @throws ValidationException
+     */
+    private function ensureValidTransition(
+        JobStatus $currentStatus,
+        JobStatus $nextStatus,
+    ): void {
+        if ($currentStatus->canTransitionTo($nextStatus)) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'status' => [
+                sprintf(
+                    'Transition from "%s" to "%s" is not allowed.',
+                    $currentStatus->value,
+                    $nextStatus->value,
+                ),
+            ],
+        ]);
+    }
+
+
+    /**
+     * Persist the new status and create its history record.
+     *
+     * @param ProductionJob $job
+     * @param User $actor
+     * @param JobStatus $currentStatus
+     * @param JobStatus $nextStatus
+     * @return void
+     */
+    private function persistStatusChange(
+        ProductionJob $job,
+        User $actor,
+        JobStatus $currentStatus,
+        JobStatus $nextStatus,
+    ): void {
+        $job->status = $nextStatus;
+        $job->save();
+
+        $this->history->create(
+            $job->id,
+            $actor->getAuthIdentifier(),
+            $currentStatus,
             $nextStatus,
-        ): ProductionJob {
-            $job = $this->jobs->findVisibleToForUpdateOrFail(
-                $actor,
-                $jobId
-            );
-
-            Gate::forUser($actor)->authorize(
-                'changeStatus',
-                $job
-            );
-
-            $currentStatus = $job->status;
-
-
-            if ($currentStatus !== $expectedStatus) {
-                throw new ConflictHttpException(
-                    __('general.errors.conflict_job_status')
-                );
-            }
-
-            if (!$currentStatus->canTransitionTo($nextStatus)) {
-                throw ValidationException::withMessages([
-                    'status' => [
-                        sprintf(
-                            'Transition from "%s" to "%s" is not allowed.',
-                            $currentStatus->value,
-                            $nextStatus->value,
-                        ),
-                    ],
-                ]);
-            }
-
-            $job->status = $nextStatus;
-            $job->save();
-
-            $this->history->create(
-                $job->id,
-                $actor->getAuthIdentifier(),
-                $currentStatus,
-                $nextStatus
-            );
-
-            return $job;
-        }, 3);
+        );
     }
 }
