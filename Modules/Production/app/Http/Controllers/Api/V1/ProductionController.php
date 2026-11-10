@@ -3,6 +3,7 @@
 namespace Modules\Production\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PaginationResource;
 use App\Traits\Controllers\ApiJsonResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -122,15 +123,10 @@ class ProductionController extends Controller
         );
 
         return $this->success([
-            'items' => ProductionJobResource::collection(
+            'result' => ProductionJobResource::collection(
                 $jobs->getCollection()
             )->resolve($request),
-            'pagination' => [
-                'current_page' => $jobs->currentPage(),
-                'per_page' => $jobs->perPage(),
-                'last_page' => $jobs->lastPage(),
-                'total' => $jobs->total(),
-            ],
+            'pagination' => PaginationResource::make($jobs),
         ]);
     }
 

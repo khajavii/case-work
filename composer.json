@@ -32,7 +32,9 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\": "tests/",
+            "Modules\\Orders\\Tests\\": "Modules/Orders/tests/",
+            "Modules\\Production\\Tests\\": "Modules/Production/tests/"
         }
     },
     "scripts": {

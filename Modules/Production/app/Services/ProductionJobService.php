@@ -2,6 +2,7 @@
 
 namespace Modules\Production\app\Services;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
