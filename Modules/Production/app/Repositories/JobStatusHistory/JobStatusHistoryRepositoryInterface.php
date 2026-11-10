@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Production\app\Repositories\JobStatusHistory;
+namespace Modules\Production\Repositories\JobStatusHistory;
 
 use Modules\Production\Enums\JobStatus;
 use Modules\Production\Models\JobStatusHistory;

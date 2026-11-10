@@ -1,16 +1,16 @@
 <?php
 
-namespace Modules\Production\app\Actions;
+namespace Modules\Production\Actions;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Modules\Production\app\Repositories\JobStatusHistory\JobStatusHistoryRepositoryInterface;
-use Modules\Production\app\Repositories\ProductionJob\ProductionJobRepositoryInterface;
+use Modules\Production\Jobs\LogProductionJobReadyForInstallation;
+use Modules\Production\Repositories\ProductionJob\ProductionJobRepositoryInterface;
 use Modules\Production\Enums\JobStatus;
-use Modules\Production\Models\JobStatusHistory;
 use Modules\Production\Models\ProductionJob;
+use Modules\Production\Repositories\JobStatusHistory\JobStatusHistoryRepositoryInterface;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class ChangeProductionJobStatusAction
@@ -85,6 +85,11 @@ class ChangeProductionJobStatusAction
             $job,
             $actor,
             $currentStatus,
+            $nextStatus,
+        );
+
+        $this->dispatchReadyForInstallationNotification(
+            $job,
             $nextStatus,
         );
 
@@ -191,5 +196,26 @@ class ChangeProductionJobStatusAction
             $currentStatus,
             $nextStatus,
         );
+    }
+
+    /**
+     * Dispatch the installation readiness notification after commit.
+     *
+     * @param ProductionJob $job
+     * @param JobStatus $nextStatus
+     * @return void
+     */
+    private function dispatchReadyForInstallationNotification(
+        ProductionJob $job,
+        JobStatus $nextStatus,
+    ): void {
+        if ($nextStatus->value !== JobStatus::READY_FOR_INSTALLATION->value) {
+            return;
+        }
+
+        LogProductionJobReadyForInstallation::dispatch(
+            $job->id,
+            $job->assigned_installer_id,
+        )->afterCommit();
     }
 }

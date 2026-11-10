@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Production\app\Services;
+namespace Modules\Production\Services;
 
 use App\Enums\UserRole;
 use App\Models\User;
@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Modules\Orders\Models\Order;
-use Modules\Production\app\Repositories\ProductionJob\ProductionJobRepositoryInterface;
+use Modules\Production\Repositories\ProductionJob\ProductionJobRepositoryInterface;
 use Modules\Production\Enums\JobStatus;
 use Modules\Production\Models\ProductionJob;
 

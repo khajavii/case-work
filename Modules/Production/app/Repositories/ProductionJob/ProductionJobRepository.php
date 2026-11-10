@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Production\app\Repositories\ProductionJob;
+namespace Modules\Production\Repositories\ProductionJob;
 
 use App\Enums\UserRole;
 use App\Models\User;
